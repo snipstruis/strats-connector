@@ -9,16 +9,14 @@
 #include <cstring>
 #include <cassert>
 
-static int fd=-1;
-
-void connect(std::string host, int port){
+int connect(std::string host, int port){
 	// create socket
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if(sockfd<0) fd=-2;
+	if(sockfd<0) return -1;
 
 	// find host
 	hostent* server = gethostbyname(host.c_str());
-	if(server==NULL) fd=-3;
+	if(server==NULL) return -2;
 
 	// connect
 	sockaddr_in serv_addr;
@@ -29,18 +27,18 @@ void connect(std::string host, int port){
 	serv_addr.sin_port = htons(port);
 
 	int status = connect(sockfd,(sockaddr *) &serv_addr,sizeof(serv_addr));
-	if(status<0) fd=-4;
+	if(status<0) return -3;
 
-	fd = sockfd;
+	return sockfd;
 }
 
-void send(std::string message){
+void send(int fd, std::string message){
 	assert(fd>=0);
 	write(fd,&message[0],message.size());
 }
 
 // Caution! may return multiple concatenated messages.
-std::string receive(){
+std::string receive(int fd){
 	assert(fd>=0);
 
 	std::string ret(256,0);
@@ -50,7 +48,7 @@ std::string receive(){
 	return ret;
 }
 
-void disconnect(){
+void disconnect(int fd){
 	assert(fd>=0);
 	close(fd);
 }

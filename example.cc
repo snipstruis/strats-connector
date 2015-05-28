@@ -4,16 +4,16 @@
 using namespace std;
 
 int main(){
-	connect("localhost",3720);
+	int fd = connect("localhost",3720);
 
-	send("RED");
-	cout<<"received color: \""<<receive()<<"\""<<endl;
+	send(fd,"RED");
+	cout<<"received color: \""<<receive(fd)<<"\""<<endl;
 
-	send("M653262226 4288924BB5 727165B452 73334BFBB3");
+	send(fd,"M653262226 4288924BB5 727165B452 73334BFBB3");
 
-	cout<<"received confirmation: \""<<receive()<<"\""<<endl;
+	cout<<"received confirmation: \""<<receive(fd)<<"\""<<endl;
 
-	cout<<"received start/wait: \""<<receive()<<"\""<<endl;
+	cout<<"received start/wait: \""<<receive(fd)<<"\""<<endl;
 
-	disconnect();
+	disconnect(fd);
 }
