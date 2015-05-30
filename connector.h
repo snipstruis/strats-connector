@@ -5,11 +5,12 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+#include <vector>
 #include <string>
 #include <cstring>
 #include <cassert>
 
-int connect(std::string host, int port){
+int connect(std::string const host, int const port){
 	// create socket
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if(sockfd<0) return -1;
@@ -32,23 +33,53 @@ int connect(std::string host, int port){
 	return sockfd;
 }
 
-void send(int fd, std::string message){
-	assert(fd>=0);
-	write(fd,&message[0],message.size());
+void clear_readbuf(int const fd){
+	static char c[8];
+	while(recv(fd,c,sizeof(c),MSG_DONTWAIT)>0){};
 }
 
-// Caution! may return multiple concatenated messages.
-std::string receive(int fd){
-	assert(fd>=0);
-
-	std::string ret(256,0);
-	int bytes_read = read(fd,&ret[0],256);
-	ret.resize(bytes_read);
-
-	return ret;
+bool send(int const fd, std::string const & message){
+	assert(fd>0);
+	size_t bytes_left    = message.size();
+	size_t bytes_written = 0;
+	while(bytes_left > 0){
+		int w = write(fd,&message[bytes_written],bytes_left);
+		if(w == -1){
+			return false;
+		}else{
+			bytes_left    -= w;
+			bytes_written += w;
+		}
+	}
+	return true;
 }
 
-void disconnect(int fd){
+bool sendln(int const fd, std::string message){
+	message += '\n';
+	return send(fd,message);
+}
+
+std::string receiveln(int const fd){
+	assert(fd>=0);
+
+	std::string s="";
+	char prev;
+	char c = '\n';
+	int  r;
+	while(true){
+		prev = c;
+		r = read(fd,&c,1);
+		if(r!=1) break;
+		else if(c=='\n') {if(prev<=' '){s.pop_back();} break;}
+		else if(c<=' ' && prev<=' ') continue;
+		else if( (c>='A'&&c<='Z') || (c>='0'&&c<='9') ) s += c;
+		else if( c<=' ' ) s += ' ';
+		else continue;
+	};
+	return s;
+}
+
+void disconnect(int const fd){
 	assert(fd>=0);
 	close(fd);
 }
