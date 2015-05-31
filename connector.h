@@ -78,7 +78,7 @@ std::string receiveln(int const fd){
 			break;
 		}else if(c<=' ' && prev<=' '){
 			continue;
-		}else if( (c>='A'&&c<='Z') || (c>='0'&&c<='9') || c=='?' || c=='.' || c=='~' ){
+		}else if( (c>='A'&&c<='Z') || (c>='0'&&c<='9') || c=='#' || c=='.' || c=='~' ){
 			s += c;
 		}else if( c<=' ' ){
 		   	s += ' ';
