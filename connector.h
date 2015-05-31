@@ -34,8 +34,8 @@ int connect(std::string const host, int const port){
 }
 
 void clear_readbuf(int const fd){
-	static char c[8];
-	while(recv(fd,c,sizeof(c),MSG_DONTWAIT)>0){};
+	static char c;
+	while(recv(fd,&c,sizeof(c),MSG_DONTWAIT)>0){};
 }
 
 bool send(int const fd, std::string const & message){
@@ -44,7 +44,7 @@ bool send(int const fd, std::string const & message){
 	size_t bytes_written = 0;
 	while(bytes_left > 0){
 		int w = write(fd,&message[bytes_written],bytes_left);
-		if(w == -1){
+		if(w <= 0){
 			return false;
 		}else{
 			bytes_left    -= w;
@@ -54,9 +54,8 @@ bool send(int const fd, std::string const & message){
 	return true;
 }
 
-bool sendln(int const fd, std::string message){
-	message += '\n';
-	return send(fd,message);
+bool sendln(int const fd, std::string const &message){
+	return send(fd,message+'\n');
 }
 
 std::string receiveln(int const fd){
@@ -65,17 +64,29 @@ std::string receiveln(int const fd){
 	std::string s="";
 	char prev;
 	char c = '\n';
-	int  r;
+	int  bytes_read;
 	while(true){
 		prev = c;
-		r = read(fd,&c,1);
-		if(r!=1) break;
-		else if(c=='\n') {if(prev<=' '){s.pop_back();} break;}
-		else if(c<=' ' && prev<=' ') continue;
-		else if( (c>='A'&&c<='Z') || (c>='0'&&c<='9') ) s += c;
-		else if( c<=' ' ) s += ' ';
-		else continue;
-	};
+		bytes_read = read(fd,&c,1);
+		printf("%2X ",(unsigned)c);
+		if(bytes_read!=1){
+			break;
+		}else if(c=='\n') {
+			if(prev<=' '){
+				s.pop_back();
+			} 
+			break;
+		}else if(c<=' ' && prev<=' '){
+			continue;
+		}else if( (c>='A'&&c<='Z') || (c>='0'&&c<='9') || c=='?' || c=='.' || c=='~' ){
+			s += c;
+		}else if( c<=' ' ){
+		   	s += ' ';
+		}else{
+			continue;
+		}
+	}
+	printf(" (%s)\n",s.c_str());
 	return s;
 }
 
@@ -83,4 +94,3 @@ void disconnect(int const fd){
 	assert(fd>=0);
 	close(fd);
 }
-
