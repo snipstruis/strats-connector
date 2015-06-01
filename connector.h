@@ -68,7 +68,7 @@ std::string receiveln(int const fd){
 	while(true){
 		prev = c;
 		bytes_read = read(fd,&c,1);
-		printf("%2X ",(unsigned)c);
+		//printf("%2X ",(unsigned)c);
 		if(bytes_read!=1){
 			break;
 		}else if(c=='\n') {
@@ -86,7 +86,7 @@ std::string receiveln(int const fd){
 			continue;
 		}
 	}
-	printf(" (%s)\n",s.c_str());
+	//printf(" (%s)\n",s.c_str());
 	return s;
 }
 
